@@ -25,7 +25,7 @@ const Chat = () => {
     }
 
     // Create WebSocket connection
-    socketRef.current = new WebSocket('wss://chatconnect-1d1i.onrender.com');
+    socketRef.current = new WebSocket('wss://chat-connect-backend-2ty0.onrender.com');
     console.log("Attempting to connect to WebSocket server...");
     
     // Connection opened handler
