@@ -1,7 +1,7 @@
 import type {ChatRoom, Message, User} from "../utils/types";
 import type {WebSocket} from "ws";
 import Chat from "./Chat";
-import {CHAT_CREATED, CHAT_JOINED, CREATE_CHAT, JOIN_CHAT, MESSAGE} from "../utils/message";
+import {CHAT_CREATED, CHAT_JOINED, CREATE_CHAT, JOIN_CHAT, LEAVE_CHAT, MESSAGE} from "../utils/message";
 import generateRoomId from "../utils/generateRoomId";
 
 class ChatManager{
@@ -38,7 +38,8 @@ class ChatManager{
             if(message.type===JOIN_CHAT){
                 const chatId=message.chatId
                 const chat=this.chats.find(c=>c.roomId==chatId)
-                if(chat){
+                const user=chat?.findChatUser(socket)
+                if(chat && user){
                     chat.addNewChatUser(socket,message.name)
                     socket.send(JSON.stringify({
                         type:CHAT_JOINED,

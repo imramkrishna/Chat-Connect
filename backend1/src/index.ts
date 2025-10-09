@@ -7,8 +7,7 @@ wss.on("connection", (ws) => {
     // Wire ChatManager's message handler so clients (e.g., Hoppscotch) can use the protocol
     chatManager.messageHandler(ws)
     ws.on("close", () => {
-        // websocket close logic
-        console.log("Websocket connection closed.")
+
     })
     ws.on("error", (err) => {
         // websocket error logic
