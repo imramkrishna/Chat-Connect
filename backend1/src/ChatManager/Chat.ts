@@ -4,10 +4,13 @@ export class Chat{
     public chatUsers:User[]
     public messages:Message[]
     public roomId:string
+    public name?:string
+    public createdAt:Date
     constructor(roomId:string){
         this.roomId=roomId;
         this.chatUsers=[]
         this.messages=[]
+        this.createdAt=new Date()
     }
     addNewChatUser(socket:WebSocket,name:string){
         const newUser={
@@ -18,6 +21,9 @@ export class Chat{
             isAdmin:false
         }
         this.chatUsers.push(newUser)
+    }
+    setRoomName(name:string){
+        this.name=name
     }
     removeChatUser(user:User) {
         const filteredUsers = this.chatUsers.filter(u => u != user)

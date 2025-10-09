@@ -16,5 +16,6 @@ export interface ChatRoom{
     roomId:string
     players:User[]
     Messages:Message[]
+    name?:string
     createdAt:Date
 }

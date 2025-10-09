@@ -29,10 +29,15 @@ class ChatManager{
                 const chatId=generateRoomId();
                 const chat=new Chat(chatId)
                 chat.addNewChatUser(socket,message.name)
+                chat.setRoomName(message.roomName)
                 this.chats.push(chat)
                 socket.send(JSON.stringify({
                     type:CHAT_CREATED,
-                    chatId
+                    chatId,
+                    chatUsers:chat.chatUsers,
+                    messages:chat.messages,
+                    name:chat.name,
+                    createdAt:chat.createdAt
                 }))
             }
             if(message.type===JOIN_CHAT){
@@ -45,7 +50,9 @@ class ChatManager{
                         type:CHAT_JOINED,
                         chatId,
                         chatUsers:chat.chatUsers,
-                        messages:chat.messages
+                        messages:chat.messages,
+                        name:chat.name,
+                        createdAt:chat.createdAt
                     }))
                 }
             }
