@@ -2,18 +2,18 @@ import type {WebSocket} from "ws"
 export interface User{
     user:WebSocket
     name:string
-    roomId?:String
+    roomId?:string
     joinedTime:Date
     isAdmin:boolean
 }
 export interface Message{
     user:WebSocket
-    message:String
+    message:string
     sentTime:Date
-    roomId?:String
+    roomId?:string
 }
 export interface ChatRoom{
-    roomId:String
+    roomId:string
     players:User[]
     Messages:Message[]
     createdAt:Date
