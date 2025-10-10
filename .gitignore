@@ -1,4 +1,4 @@
-backend# Ignore node_modules in all directories
+# Ignore node_modules in all directories
 **/node_modules/
 
 # Ignore dist or build folders in all directories
