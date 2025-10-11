@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useSocket } from '../hooks/useSocket';
-import {MESSAGE, NEW_USER_JOINED} from '../messages/message';
+import {MESSAGE, NEW_USER_JOINED, USER_LEFT} from '../messages/message';
 import type {Message, User} from "../types.tsx";
+
+interface SystemMessage {
+    type: 'system';
+    message: string;
+    time: Date;
+}
 
 const ChatRoom = () => {
     const socket=useSocket();
@@ -72,6 +78,38 @@ const ChatRoom = () => {
         }
     }, [chatUsers, socket]);
 
+    // Track user joins and leaves
+    useEffect(() => {
+        if (!users || users.length === 0) return;
+        
+        const prevUserNames = new Set(chatUsers?.map((u: User) => u.name) || []);
+        const currentUserNames = new Set(users.map((u: User) => u.name));
+        
+        // Check for new users
+        users.forEach((user: User) => {
+            if (!prevUserNames.has(user.name) && user.name !== currentUserName) {
+                const systemMsg: SystemMessage = {
+                    type: 'system',
+                    message: `${user.name} joined the chat`,
+                    time: new Date()
+                };
+                setMessages((prev: any) => [...prev, systemMsg]);
+            }
+        });
+        
+        // Check for left users
+        chatUsers?.forEach((user: User) => {
+            if (!currentUserNames.has(user.name) && user.name !== currentUserName) {
+                const systemMsg: SystemMessage = {
+                    type: 'system',
+                    message: `${user.name} left the chat`,
+                    time: new Date()
+                };
+                setMessages((prev: any) => [...prev, systemMsg]);
+            }
+        });
+    }, [users]);
+
     useEffect(()=>{
         if(!socket) return;
         socket.onmessage=(messageEvent:MessageEvent)=>{
@@ -91,14 +129,42 @@ const ChatRoom = () => {
                 case NEW_USER_JOINED:
                 {
                     console.log("New user joined:", message.chatUsers);
-                    setUsers(message.chatUsers)
+                    const prevCount = users.length;
+                    const newCount = message.chatUsers.length;
+                    
+                    // Add system message for new user
+                    if (newCount > prevCount && message.chatUsers.length > 0) {
+                        const newUser = message.chatUsers[message.chatUsers.length - 1];
+                        if (newUser.name !== currentUserName) {
+                            const systemMsg: SystemMessage = {
+                                type: 'system',
+                                message: `${newUser.name} joined the chat`,
+                                time: new Date()
+                            };
+                            setMessages((prev: any) => [...prev, systemMsg]);
+                        }
+                    }
+                    
+                    setUsers(message.chatUsers);
+                    break;
+                }
+                case USER_LEFT:
+                {
+                    console.log("User left:", message.userName);
+                    const systemMsg: SystemMessage = {
+                        type: 'system',
+                        message: `${message.userName} left the chat`,
+                        time: new Date()
+                    };
+                    setMessages((prev: any) => [...prev, systemMsg]);
+                    setUsers(message.chatUsers);
                     break;
                 }
                 default:
                     console.log("Unknown message type:", message);
             }
         }
-    },[socket])
+    },[socket, users, currentUserName])
     return (
         <div className="flex h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 overflow-hidden">
             {/* Sidebar */}
@@ -231,13 +297,26 @@ const ChatRoom = () => {
                             </div>
                         ) : (
                             messages.map((msg: any, idx: number) => {
+                                // Check if this is a system message
+                                if (msg.type === 'system') {
+                                    return (
+                                        <div key={`system-${idx}`} className="flex justify-center my-4 animate-fadeIn">
+                                            <div className="bg-slate-800/50 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-700/50 shadow-md">
+                                                <p className="text-xs text-slate-400 font-medium">
+                                                    {msg.message}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                
                                 // Get sender name from message or fallback to finding user
                                 const senderName = msg.senderName || msg.sender || 'Unknown';
                                 const sent = msg.time ?? msg.sentTime;
                                 const timeLabel = sent ? new Date(sent).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
                                 const text = msg.text ?? msg.message ?? '';
                                 
-                                // Check if this message is from current user
+                                // Check if this message is from current user (LEFT side in messenger)
                                 const isMine = msg.user === socket || senderName === currentUserName;
                                 
                                 // Find user info for avatar
@@ -246,10 +325,10 @@ const ChatRoom = () => {
                                 return (
                                     <div
                                         key={`${msg.id ?? msg.roomId ?? chatId ?? 'msg'}-${sent ?? idx}`}
-                                        className={`flex ${isMine ? 'justify-end' : 'justify-start'} animate-fadeIn`}
+                                        className={`flex ${isMine ? 'justify-start' : 'justify-end'} animate-fadeIn`}
                                     >
-                                        <div className={`flex items-start gap-3 max-w-[85%] sm:max-w-[75%] md:max-w-[70%] ${isMine ? 'flex-row-reverse' : 'flex-row'}`}>
-                                            {/* Avatar */}
+                                        <div className={`flex items-start gap-3 max-w-[85%] sm:max-w-[75%] md:max-w-[70%]`}>
+                                            {/* Avatar - Always on left */}
                                             <div className="flex-shrink-0">
                                                 {userInfo?.avatar ? (
                                                     <img
@@ -266,7 +345,7 @@ const ChatRoom = () => {
                                             
                                             {/* Message Content */}
                                             <div className="flex-1 min-w-0">
-                                                <div className={`flex items-center gap-2 mb-1 ${isMine ? 'flex-row-reverse justify-start' : 'flex-row'}`}>
+                                                <div className="flex items-center gap-2 mb-1">
                                                     <span className={`text-sm font-bold truncate ${isMine ? 'text-blue-400' : 'text-slate-300'}`}>
                                                         {senderName}
                                                     </span>
@@ -279,7 +358,7 @@ const ChatRoom = () => {
                                                 <div
                                                     className={`px-4 py-3 rounded-2xl shadow-lg ${
                                                         isMine
-                                                            ? 'bg-blue-600 text-white rounded-tr-md'
+                                                            ? 'bg-blue-600 text-white rounded-tl-md'
                                                             : 'bg-slate-800/90 text-slate-100 rounded-tl-md border border-slate-700/50'
                                                     }`}
                                                 >
