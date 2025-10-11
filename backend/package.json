@@ -4,7 +4,8 @@
   "description": "This is a backend for chatconnect",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsc -b && node dist/index.js"
   },
   "author": "Ram Krishna Yadav",
   "license": "ISC",

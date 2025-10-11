@@ -1,6 +1,7 @@
 import type {WebSocket} from "ws"
 export interface User{
     user:WebSocket
+    id:number
     name:string
     roomId?:string
     joinedTime:Date
@@ -8,6 +9,8 @@ export interface User{
 }
 export interface Message{
     user:WebSocket
+    userId?:number
+    senderName?:string
     message:string
     sentTime:Date
     roomId?:string

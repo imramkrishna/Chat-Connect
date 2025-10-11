@@ -18,8 +18,8 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
         const handleCreateRoom = () => {
         socket?.send(JSON.stringify({
             type:CREATE_CHAT,
-            name:userName,
-            roomName:roomName
+            name:userName.toUpperCase(),
+            roomName:roomName.toUpperCase()
         }))
     }
     useEffect(()=>{
@@ -34,7 +34,8 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
                             chatUsers:message.chatUsers,
                             chatMessages:message.messages,
                             chatName:message.name,
-                            createdAt:message.createdAt
+                            createdAt:message.createdAt,
+                            currentUser:message.currentUser
                         }
                     })
                     break;

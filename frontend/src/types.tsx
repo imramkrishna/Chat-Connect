@@ -1,5 +1,6 @@
 export interface Message{
     user:WebSocket,
+    userId?:number
     message:string
     sentTime:Date
     roomId:string
@@ -7,6 +8,7 @@ export interface Message{
 }
 export interface User{
     user:WebSocket
+    id:number
     name:string
     roomId?:string
     joinedTime:Date

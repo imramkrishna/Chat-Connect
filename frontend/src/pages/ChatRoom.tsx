@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useSocket } from '../hooks/useSocket';
-import {MESSAGE, NEW_USER_JOINED, USER_LEFT} from '../messages/message';
+import {MESSAGE, NEW_USER_JOINED, USER_LEFT, KICK_OUT, USER_REMOVED} from '../messages/message';
 import type {Message, User} from "../types.tsx";
 
 interface SystemMessage {
@@ -9,18 +9,19 @@ interface SystemMessage {
     message: string;
     time: Date;
 }
-
 const ChatRoom = () => {
     const socket=useSocket();
     const location = useLocation();
-    const {chatId,chatUsers,chatName,chatMessages,createdAt}=location.state || {}
+    const {chatId,chatUsers,chatName,chatMessages,createdAt,currentUser}=location.state || {}
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState<Message[]>(chatMessages || []);
     const [users,setUsers]=useState<User[]>(chatUsers || [])
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [copied, setCopied] = useState(false);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
-    const [currentUserName, setCurrentUserName] = useState<string>('');
+    const [currentUserName, setCurrentUserName] = useState<string>(currentUser?.name || '');
+    const [currentUserId, setCurrentUserId] = useState<number>(currentUser?.id || 0);
+    const [isAdmin, setIsAdmin] = useState<boolean>(currentUser?.isAdmin || false);
 
     // Generate initials for avatar
     const getInitials = (name: string) => {
@@ -68,23 +69,23 @@ const ChatRoom = () => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
-    console.log("Messages:", messages);
     
     useEffect(() => {
-        // Find current user from chatUsers
-        const currentUser = chatUsers?.find((u: User) => u.user === socket);
-        if (currentUser) {
-            setCurrentUserName(currentUser.name);
+        // Update current user info from users list when it changes
+        const currentUserInList = users?.find((u: User) => u.id === currentUserId);
+        if (currentUserInList && currentUserId !== 0) {
+            setCurrentUserName(currentUserInList.name);
+            setIsAdmin(currentUserInList.isAdmin);
         }
-    }, [chatUsers, socket]);
+    }, [users, currentUserId]);
 
     // Track user joins and leaves
     useEffect(() => {
         if (!users || users.length === 0) return;
-        
+
         const prevUserNames = new Set(chatUsers?.map((u: User) => u.name) || []);
         const currentUserNames = new Set(users.map((u: User) => u.name));
-        
+
         // Check for new users
         users.forEach((user: User) => {
             if (!prevUserNames.has(user.name) && user.name !== currentUserName) {
@@ -119,6 +120,7 @@ const ChatRoom = () => {
                 case MESSAGE:
                     { const newMessage:Message={
                         user:message.senderSocket,
+                        userId:message.userId,
                         message:message.message,
                         roomId:message.chatId,
                         sentTime:message.sentTime,
@@ -160,11 +162,23 @@ const ChatRoom = () => {
                     setUsers(message.chatUsers);
                     break;
                 }
+                case USER_REMOVED:
+                {
+                    console.log("User removed:", message.name);
+                    const systemMsg: SystemMessage = {
+                        type: 'system',
+                        message: `${message.name} was removed from the chat`,
+                        time: new Date()
+                    };
+                    setMessages((prev: any) => [...prev, systemMsg]);
+                    setUsers(message.users);
+                    break;
+                }
                 default:
                     console.log("Unknown message type:", message);
             }
         }
-    },[socket, users, currentUserName])
+    },[socket, users, currentUserName, currentUserId])
     return (
         <div className="flex h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 overflow-hidden">
             {/* Sidebar */}
@@ -217,9 +231,32 @@ const ChatRoom = () => {
                                                 ADMIN
                                             </span>
                                         )}
+                                        {user.id === currentUserId && (
+                                            <span className="text-xs text-blue-400 font-medium">(You)</span>
+                                        )}
                                     </div>
                                     <span className="text-xs text-slate-500">Active now</span>
                                 </div>
+                                {/* Kick button - only show for admin and not for themselves */}
+                                {isAdmin && user.id !== currentUserId && (
+                                    <button
+                                        onClick={() => {
+                                            if (confirm(`Remove ${user.name} from the chat?`)) {
+                                                socket?.send(JSON.stringify({
+                                                    type: KICK_OUT,
+                                                    chatId: chatId,
+                                                    removeUserId: user.id
+                                                }));
+                                            }
+                                        }}
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-red-600/20 rounded-lg text-red-400 hover:text-red-300"
+                                        title="Remove user"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                )}
                             </li>
                         ))}
                     </ul>
@@ -316,8 +353,9 @@ const ChatRoom = () => {
                                 const timeLabel = sent ? new Date(sent).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
                                 const text = msg.text ?? msg.message ?? '';
                                 
-                                // Check if this message is from current user (LEFT side in messenger)
-                                const isMine = msg.user === socket || senderName === currentUserName;
+                                // Check if this message is from current user by comparing user IDs
+                                const isMine = msg.userId === currentUserId;
+                                console.log("Current User ID:", currentUserId, "Message User ID:", msg.userId, "Is Mine:", isMine);
                                 
                                 // Find user info for avatar
                                 const userInfo = users.find((u:User)=>u.name === senderName);

@@ -22,7 +22,7 @@ const JoinRoomModal: React.FC<JoinRoomModalProps> = ({
     const handleJoinRoom = () => {
         socket?.send(JSON.stringify({
             type:JOIN_CHAT,
-            name:userName,
+            name:userName.toUpperCase(),
             chatId:roomCode
         }))  
     };
@@ -38,7 +38,8 @@ const JoinRoomModal: React.FC<JoinRoomModalProps> = ({
                             chatUsers:message.chatUsers,
                             chatMessages:message.messages as Message[],
                             chatName:message.name,
-                            createdAt:message.createdAt
+                            createdAt:message.createdAt,
+                            currentUser:message.currentUser
                         }})
                     break;
                 case INVALID_CREDENTIALS:
