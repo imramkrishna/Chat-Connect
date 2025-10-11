@@ -9,9 +9,6 @@ const LandingPage = () => {
     const [showJoinRoomModal,setShowJoinRoom]=useState<boolean>(false)
     const [showCreateRoomModal,setShowCreateRoomModal]=useState<boolean>(false)
     const [showChatRoomModal,setShowChatRoomModal]=useState<boolean>(false)
-    const handleJoinRoom = () => {
-        console.log("join room")
-    }
     const handleCreateRoom=()=>{
 
     }
@@ -41,7 +38,6 @@ const LandingPage = () => {
                         <JoinRoomModal
                             onOpen={()=>setShowJoinRoom(true)}
                             onClose={()=>setShowJoinRoom(false)}
-                            onJoin={handleJoinRoom}
                             onCreate={handleCreateRoom}
                         />
                     )

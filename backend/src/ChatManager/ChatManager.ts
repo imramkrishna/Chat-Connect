@@ -67,7 +67,7 @@ class ChatManager{
                         }else{
                             user.user.send(JSON.stringify({
                                 type:NEW_USER_JOINED,
-                                user
+                                chatUsers:chat.chatUsers
                             }))
                         }
                     })

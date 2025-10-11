@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useSocket } from '../hooks/useSocket';
-import { MESSAGE } from '../messages/message';
+import {MESSAGE, NEW_USER_JOINED} from '../messages/message';
+import type {Message, User} from "../types.tsx";
 const ChatRoom = () => {
     const socket=useSocket();
     const location = useLocation();
     const {chatId,chatUsers,chatName,chatMessages,createdAt}=location.state || {}
     const [message, setMessage] = useState('');
-    const [messages, setMessages] = useState(chatMessages);
+    const [messages, setMessages] = useState<Message[]>(chatMessages);
     const [users,setUsers]=useState(chatUsers)
 
     const handleSend = () => {
@@ -19,12 +20,27 @@ const ChatRoom = () => {
     };
     useEffect(()=>{
         if(!socket) return;
-        socket.onmessage=(messageEvent)=>{
+        socket.onmessage=(messageEvent:MessageEvent)=>{
             const message=JSON.parse(messageEvent.data);
             switch(message.type){
                 case MESSAGE:
-                    setMessages((prevMessages:any)=>[...prevMessages,message.message])
+                    { const newMessage:Message={
+                        user:message.senderSocket,
+                        message:message.message,
+                        roomId:message.chatId,
+                        sentTime:message.sentTime,
+                    }
+                    setMessages((prevMessages:Message[])=>[...prevMessages,newMessage])
+                    break; }
+                case NEW_USER_JOINED:
+                {
+                    const length = message.chatUsers.length()
+
+                    setUsers((prevUsers:User[])=>[...prevUsers,message.chatUsers[length-1]])
                     break;
+                }
+                default:
+                    console.log("Unknown message type:", message);
             }
         }
     },[socket])
@@ -67,6 +83,7 @@ const ChatRoom = () => {
                         <button className="px-4 py-2 bg-slate-800 text-slate-200 rounded-lg font-semibold border border-slate-700 hover:bg-slate-700 transition-all">
                             Leave Room
                         </button>
+                        <span className="text-slate-400 text-sm">Room Created At : {createdAt}</span>
                     </div>
                 </div>
 

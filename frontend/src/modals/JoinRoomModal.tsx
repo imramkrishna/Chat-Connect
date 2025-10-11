@@ -2,16 +2,15 @@ import React, { useState,useEffect } from "react";
 import { useSocket } from "../hooks/useSocket";
 import { CHAT_JOINED, INVALID_CREDENTIALS, JOIN_CHAT } from "../messages/message";
 import { useNavigate } from "react-router-dom";
+import type {Message} from "../types.tsx";
 
 interface JoinRoomModalProps {
     onOpen?: () => void;
     onClose?: () => void;
-    onJoin?: () => void;
     onCreate: () => void;
 }
 
 const JoinRoomModal: React.FC<JoinRoomModalProps> = ({
-    onJoin,
     onCreate,
     onClose
 }) => {
@@ -37,7 +36,7 @@ const JoinRoomModal: React.FC<JoinRoomModalProps> = ({
                         state:{
                             chatId:message.chatId,
                             chatUsers:message.chatUsers,
-                            chatMessages:message.messages,
+                            chatMessages:message.messages as Message[],
                             chatName:message.name,
                             createdAt:message.createdAt
                         }})
