@@ -1,3 +1,4 @@
+import { MESSAGE } from "../utils/message";
 import type {Message, User} from "../utils/types";
 import type {WebSocket} from "ws";
 export class Chat{
@@ -40,7 +41,7 @@ export class Chat{
             this.messages.push(message)
             this.chatUsers.forEach(u=>{
                     u.user.send(JSON.stringify({
-                        type:"MESSAGE",
+                        type:MESSAGE,
                         message:message.message,
                         chatId:message.roomId,
                         senderName:user.name,
