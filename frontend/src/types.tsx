@@ -3,6 +3,7 @@ export interface Message{
     message:string
     sentTime:Date
     roomId:string
+    senderName?:string
 }
 export interface User{
     user:WebSocket
@@ -10,4 +11,5 @@ export interface User{
     roomId?:string
     joinedTime:Date
     isAdmin:boolean
+    avatar?:string
 }

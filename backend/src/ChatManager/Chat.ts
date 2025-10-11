@@ -45,7 +45,7 @@ export class Chat{
                         message:message.message,
                         chatId:message.roomId,
                         senderName:user.name,
-                        senderSocket:u.user,
+                        senderSocket:socket,
                         sentTime:message.sentTime
                     }))
             })
