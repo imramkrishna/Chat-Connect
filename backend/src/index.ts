@@ -1,16 +1,28 @@
+import http from "http"
 import {WebSocketServer} from "ws"
 import ChatManager from "./ChatManager/ChatManager";
-const wss = new WebSocketServer({ port: 8000 })
+import express from "express";
+const app = express();
+const server=app.listen(8000,()=>{
+    console.log("Server is running on port 8000")
+});
+
+const wss = new WebSocketServer({ server })
 const chatManager = new ChatManager()
+
 wss.on("connection", (ws) => {
     console.log("New Connection Established.")
-    // Wire ChatManager's message handler so clients (e.g., Hoppscotch) can use the protocol
     chatManager.messageHandler(ws)
-    ws.on("close", () => {
 
+    ws.on("close", () => {
+        console.log("Connection Closed.")
     })
+
     ws.on("error", (err) => {
-        // websocket error logic
         console.log("Error in the websocket.", err)
     })
+})
+
+app.get("/", (req, res) => {
+    res.send("Server is running for chat connect.")
 })

@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useSocket } from '../hooks/useSocket';
 import {MESSAGE, NEW_USER_JOINED, USER_LEFT, KICK_OUT, USER_REMOVED} from '../messages/message';
 import type {Message, User} from "../types.tsx";
+import AttachmentMenu from '../components/AttachmentMenu';
 
 interface SystemMessage {
     type: 'system';
@@ -69,7 +70,38 @@ const ChatRoom = () => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
-    
+
+    // Attachment handlers
+    const handleFileSelect = (files: FileList) => {
+        console.log('Files selected:', files);
+        // TODO: Implement file upload logic
+        alert(`Selected ${files.length} file(s): ${Array.from(files).map(f => f.name).join(', ')}`);
+    };
+
+    const handleMediaSelect = (files: FileList) => {
+        console.log('Media selected:', files);
+        // TODO: Implement media upload logic
+        alert(`Selected ${files.length} media file(s): ${Array.from(files).map(f => f.name).join(', ')}`);
+    };
+
+    const handleContactSelect = () => {
+        console.log('Contact selected');
+        // TODO: Implement contact sharing logic
+        alert('Contact sharing feature coming soon!');
+    };
+
+    const handlePollCreate = () => {
+        console.log('Poll creation requested');
+        // TODO: Implement poll creation logic
+        alert('Poll creation feature coming soon!');
+    };
+
+    const handleEventCreate = () => {
+        console.log('Event creation requested');
+        // TODO: Implement event creation logic
+        alert('Event creation feature coming soon!');
+    };
+
     useEffect(() => {
         // Update current user info from users list when it changes
         const currentUserInList = users?.find((u: User) => u.id === currentUserId);
@@ -417,6 +449,14 @@ const ChatRoom = () => {
                 <div className="px-4 md:px-8 py-4 md:py-6 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800/50 shadow-2xl">
                     <div className="max-w-4xl mx-auto">
                         <div className="flex items-end gap-3">
+                            {/* Attachment Menu */}
+                            <AttachmentMenu
+                                onFileSelect={handleFileSelect}
+                                onMediaSelect={handleMediaSelect}
+                                onContactSelect={handleContactSelect}
+                                onPollCreate={handlePollCreate}
+                                onEventCreate={handleEventCreate}
+                            />
                             <div className="flex-1 relative">
                                 <textarea
                                     value={message}
