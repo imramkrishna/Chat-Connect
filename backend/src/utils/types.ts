@@ -22,3 +22,14 @@ export interface ChatRoom{
     name?:string
     createdAt:Date
 }
+export interface FileUploadMessage{
+    user:WebSocket
+    userId?:number
+    senderName?:string
+    fileUrl:string
+    fileName:string
+    fileType:string
+    fileSize:number
+    sentTime:Date
+    roomId?:string
+}
