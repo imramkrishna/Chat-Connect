@@ -11,3 +11,11 @@ export const NEW_USER_JOINED="new_user_joined"
 export const KICK_OUT="kick_out"
 export const USER_REMOVED="user_removed"
 export const USER_REMOVE_FAILED="user_remove_failed"
+export enum STATUSCODE{
+    SUCCESS=200,
+    BAD_REQUEST=400,
+    UNAUTHORIZED=401,
+    FORBIDDEN=403,
+    NOT_FOUND=404,
+    SERVER_ERROR=500,
+}
