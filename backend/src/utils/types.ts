@@ -7,12 +7,19 @@ export interface User{
     joinedTime:Date
     isAdmin:boolean
 }
+interface FileUploadMessage{
+    fileName:string
+    originalName?:string
+    mimeType?:string
+    size?:number
+}
 export interface Message{
     user:WebSocket
     userId?:number
     senderName?:string
     message:string
     sentTime:Date
+    File?:FileUploadMessage
     roomId?:string
 }
 export interface ChatRoom{
@@ -21,15 +28,4 @@ export interface ChatRoom{
     Messages:Message[]
     name?:string
     createdAt:Date
-}
-export interface FileUploadMessage{
-    user:WebSocket
-    userId?:number
-    senderName?:string
-    fileUrl:string
-    fileName:string
-    fileType:string
-    fileSize:number
-    sentTime:Date
-    roomId?:string
 }

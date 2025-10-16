@@ -1,11 +1,19 @@
 import multer from 'multer';
 import path from "path";
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, "..", "..", "uploads"));
+    destination: function (req, file, cb) {
+        cb(null, './uploads')
     },
-    filename: (req, file, cb) => {
-        cb(null, `uploaded_file-${Date.now()}-${Math.round(Math.random() * 1E8)}`);
+    filename: function (req, file, cb) {
+        // Get the file extension from original filename
+        const ext = path.extname(file.originalname); // e.g., ".jpg", ".png", ".mp4"
+        const nameWithoutExt = path.basename(file.originalname, ext); // e.g., "photo"
+        
+        // Create unique filename with timestamp and original extension
+        const uniqueName = `${file.fieldname}-${Date.now()}-${nameWithoutExt}${ext}`;
+        // Example: "uploaded_file-1729123456789-photo.jpg"
+        
+        cb(null, uniqueName);
     }
-});
+})
 export default storage
