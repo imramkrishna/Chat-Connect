@@ -10,9 +10,11 @@
   "author": "Ram Krishna Yadav",
   "license": "ISC",
   "dependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/multer": "^2.0.0",
     "@types/ws": "^8.18.1",
+    "cors": "^2.8.5",
     "express": "^5.1.0",
     "multer": "^2.0.2",
     "ws": "^8.18.3"

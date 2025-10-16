@@ -16,6 +16,7 @@ const AttachmentMenu = ({
     onEventCreate
 }: AttachmentMenuProps) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const mediaInputRef = useRef<HTMLInputElement>(null);
@@ -37,11 +38,44 @@ const AttachmentMenu = ({
         };
     }, [isOpen]);
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const uploadFile = async (file: File) => {
+        setIsUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('uploaded_file', file);
+
+            const response = await fetch('http://localhost:8000/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+
+            const data = await response.json();
+            console.log('File uploaded successfully:', data);
+            return data;
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Failed to upload file');
+            throw error;
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
         if (files && files.length > 0) {
-            onFileSelect?.(files);
-            setIsOpen(false);
+            try {
+                // Upload to backend
+                await uploadFile(files[0]);
+                onFileSelect?.(files);
+                setIsOpen(false);
+            } catch (error) {
+                console.error('Error handling file:', error);
+            }
         }
         // Reset input
         if (event.target) {
@@ -49,11 +83,17 @@ const AttachmentMenu = ({
         }
     };
 
-    const handleMediaChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleMediaChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
         if (files && files.length > 0) {
-            onMediaSelect?.(files);
-            setIsOpen(false);
+            try {
+                // Upload to backend
+                await uploadFile(files[0]);
+                onMediaSelect?.(files);
+                setIsOpen(false);
+            } catch (error) {
+                console.error('Error handling media:', error);
+            }
         }
         // Reset input
         if (event.target) {
@@ -179,4 +219,3 @@ const AttachmentMenu = ({
 };
 
 export default AttachmentMenu;
-

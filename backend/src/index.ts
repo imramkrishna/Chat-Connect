@@ -2,15 +2,23 @@ import http from "http"
 import {WebSocketServer} from "ws"
 import ChatManager from "./ChatManager/ChatManager";
 import express from "express";
-import upload from "./storage/storage";
-import {FileUploadMessage} from "./utils/types";
-import uploadMulter from "./storage/storage";
+import upload from "./storage/upload";
 import {STATUSCODE} from "./utils/message";
+import path from "path"
+import fs from "fs"
+import cors from "cors";
+
 const app = express();
+app.use(cors()); // Enable CORS for frontend requests
+app.use(express.json());
+
 const server=app.listen(8000,()=>{
     console.log("Server is running on port 8000")
 });
-
+const uploadsDir = path.join(__dirname, "..", "uploads");
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
 const wss = new WebSocketServer({ server })
 const chatManager = new ChatManager()
 
@@ -30,15 +38,31 @@ wss.on("connection", (ws) => {
 app.get("/", (req, res) => {
     res.send("Server is running for chat connect.")
 })
-app.post("/upload/:id", (req, res) => {
-    //file upload api ----->
-    const messageDetails:FileUploadMessage=req.body;
-    const upload=uploadMulter(messageDetails)
-    upload.single("file")(req,res,err=>{
-        if(err){
-            res.status(STATUSCODE.BAD_REQUEST).send("Error uploading file")
-        }else{
-            res.status(STATUSCODE.SUCCESS).send("File uploaded successfully")
+
+app.post("/upload", upload.single("uploaded_file"), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(STATUSCODE.BAD_REQUEST).json({
+                error: "No file uploaded"
+            });
         }
-    })
+
+        console.log("File uploaded \n", req.file);
+
+        res.status(STATUSCODE.SUCCESS).json({
+            message: "File uploaded successfully",
+            file: {
+                filename: req.file.filename,
+                originalname: req.file.originalname,
+                mimetype: req.file.mimetype,
+                size: req.file.size,
+                path: req.file.path
+            }
+        });
+    } catch (e) {
+        console.log("Error in file upload", e);
+        res.status(STATUSCODE.SERVER_ERROR).json({
+            error: "Error in file upload"
+        });
+    }
 })
