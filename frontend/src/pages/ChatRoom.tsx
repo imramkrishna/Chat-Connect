@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useSocket } from '../hooks/useSocket';
-import {MESSAGE, NEW_USER_JOINED, USER_LEFT, KICK_OUT, USER_REMOVED} from '../messages/message';
-import type {Message, User} from "../types.tsx";
+import { MESSAGE, NEW_USER_JOINED, USER_LEFT, KICK_OUT, USER_REMOVED } from '../messages/message';
+import type { FileUploadMessage, Message, User } from "../types.tsx";
 import AttachmentMenu from '../components/AttachmentMenu';
-
+import { FaFile } from "react-icons/fa";
 interface SystemMessage {
     type: 'system';
     message: string;
     time: Date;
 }
 const ChatRoom = () => {
-    const socket=useSocket();
+    const socket = useSocket();
     const location = useLocation();
-    const {chatId,chatUsers,chatName,chatMessages,createdAt,currentUser}=location.state || {}
+    const { chatId, chatUsers, chatName, chatMessages, createdAt, currentUser } = location.state || {}
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState<Message[]>(chatMessages || []);
-    const [users,setUsers]=useState<User[]>(chatUsers || [])
+    const [users, setUsers] = useState<User[]>(chatUsers || [])
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [copied, setCopied] = useState(false);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -24,7 +24,7 @@ const ChatRoom = () => {
     const [currentUserId, setCurrentUserId] = useState<number>(currentUser?.id || 0);
     const [isAdmin, setIsAdmin] = useState<boolean>(currentUser?.isAdmin || false);
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-    const [filePreviewUrls, setFilePreviewUrls] = useState<{[key: string]: string}>({});
+    const [filePreviewUrls, setFilePreviewUrls] = useState<{ [key: string]: string }>({});
 
     // Generate initials for avatar
     const getInitials = (name: string) => {
@@ -35,7 +35,7 @@ const ChatRoom = () => {
             .toUpperCase()
             .slice(0, 2);
     };
-    
+
     // Generate random color based on name
     const getAvatarColor = (name: string) => {
         const colors = [
@@ -75,22 +75,22 @@ const ChatRoom = () => {
         console.log('Event create clicked');
         // TODO: Implement event creation modal
     };
-    
+
     const handleCopyRoomId = () => {
         navigator.clipboard.writeText(chatId);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
-    
+
     const handleMediaSelect = (files: FileList) => {
         const newFiles = Array.from(files);
         setAttachedFiles(prev => [...prev, ...newFiles]);
-        
+
         // Generate preview URLs for images/videos
         newFiles.forEach(file => {
             if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
                 const url = URL.createObjectURL(file);
-                setFilePreviewUrls(prev => ({...prev, [file.name]: url}));
+                setFilePreviewUrls(prev => ({ ...prev, [file.name]: url }));
             }
         });
         console.log('Media selected:', files);
@@ -98,43 +98,65 @@ const ChatRoom = () => {
 
     const removeAttachedFile = (index: number) => {
         const file = attachedFiles[index];
-        
+
         // Revoke object URL to prevent memory leaks
         if (filePreviewUrls[file.name]) {
             URL.revokeObjectURL(filePreviewUrls[file.name]);
             setFilePreviewUrls(prev => {
-                const newUrls = {...prev};
+                const newUrls = { ...prev };
                 delete newUrls[file.name];
                 return newUrls;
             });
         }
-        
+
         setAttachedFiles(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleSend = async () => {
         if (!message.trim() && attachedFiles.length === 0) return;
-        
+
         // If there are attached files, upload them first
         if (attachedFiles.length > 0) {
-            // TODO: Upload files and get URLs
             for (const file of attachedFiles) {
-                // Upload logic here
-                console.log('Uploading:', file);
+                const response = await fetch("http://localhost:8000/upload", {
+                    method: "POST",
+                    body: (() => {
+                        const formData = new FormData();
+                        formData.append('uploaded_file', file);
+                        return formData;
+                    })()
+                });
+                if (!response.ok) {
+                    console.error('Failed to upload file:', file.name);
+                    alert(`Failed to upload file: ${file.name}`);
+                    return;
+                }
+                const data = await response.json();
+                socket?.send(JSON.stringify({
+
+                    type: MESSAGE,
+                    chatId: chatId,
+                    message: message.trim(), // Send the message text with file
+                    file: {
+                        fileName: data.file.filename,
+                        originalName: data.file.originalname,
+                        mimeType: data.file.mimetype,
+                        size: data.file.size
+                    }
+                }));
             }
+        } else if (message.trim()) {
+            // Send text-only message (no file attached)
+            socket?.send(JSON.stringify({
+                type: MESSAGE,
+                chatId: chatId,
+                message: message.trim()
+            }));
         }
-        
-        // Send message
-        socket?.send(JSON.stringify({
-            type: MESSAGE,
-            chatId: chatId,
-            message: message,
-            // attachments: uploadedFileUrls // Add this after implementing upload
-        }));
-        
+
         setMessage('');
         setAttachedFiles([]);
-        
+
         // Clean up preview URLs
         Object.values(filePreviewUrls).forEach(url => URL.revokeObjectURL(url));
         setFilePreviewUrls({});
@@ -204,7 +226,7 @@ const ChatRoom = () => {
                 setMessages((prev: any) => [...prev, systemMsg]);
             }
         });
-        
+
         // Check for left users
         chatUsers?.forEach((user: User) => {
             if (!currentUserNames.has(user.name) && user.name !== currentUserName) {
@@ -218,74 +240,76 @@ const ChatRoom = () => {
         });
     }, [users]);
 
-    useEffect(()=>{
-        if(!socket) return;
-        socket.onmessage=(messageEvent:MessageEvent)=>{
-            const message=JSON.parse(messageEvent.data);
+    useEffect(() => {
+        if (!socket) return;
+        socket.onmessage = (messageEvent: MessageEvent) => {
+            const message = JSON.parse(messageEvent.data);
             console.log("Received message:", message);
-            switch(message.type){
+            switch (message.type) {
                 case MESSAGE:
-                    { const newMessage:Message={
-                        user:message.senderSocket,
-                        userId:message.userId,
-                        message:message.message,
-                        roomId:message.chatId,
-                        sentTime:message.sentTime,
-                        senderName:message.senderName
-                    }
-                    setMessages((prevMessages:Message[])=>[...prevMessages,newMessage])
-                    break; }
-                case NEW_USER_JOINED:
-                {
-                    console.log("New user joined:", message.chatUsers);
-                    const prevCount = users.length;
-                    const newCount = message.chatUsers.length;
-                    
-                    // Add system message for new user
-                    if (newCount > prevCount && message.chatUsers.length > 0) {
-                        const newUser = message.chatUsers[message.chatUsers.length - 1];
-                        if (newUser.name !== currentUserName) {
-                            const systemMsg: SystemMessage = {
-                                type: 'system',
-                                message: `${newUser.name} joined the chat`,
-                                time: new Date()
-                            };
-                            setMessages((prev: any) => [...prev, systemMsg]);
+                    {
+                        const newMessage: Message = {
+                            user: message.senderSocket,
+                            userId: message.userId,
+                            message: message.message,
+                            roomId: message.chatId,
+                            sentTime: message.sentTime,
+                            senderName: message.senderName
                         }
+                        setMessages((prevMessages: Message[]) => [...prevMessages, newMessage])
+                        break;
                     }
-                    
-                    setUsers(message.chatUsers);
-                    break;
-                }
+                case NEW_USER_JOINED:
+                    {
+                        console.log("New user joined:", message.chatUsers);
+                        const prevCount = users.length;
+                        const newCount = message.chatUsers.length;
+
+                        // Add system message for new user
+                        if (newCount > prevCount && message.chatUsers.length > 0) {
+                            const newUser = message.chatUsers[message.chatUsers.length - 1];
+                            if (newUser.name !== currentUserName) {
+                                const systemMsg: SystemMessage = {
+                                    type: 'system',
+                                    message: `${newUser.name} joined the chat`,
+                                    time: new Date()
+                                };
+                                setMessages((prev: any) => [...prev, systemMsg]);
+                            }
+                        }
+
+                        setUsers(message.chatUsers);
+                        break;
+                    }
                 case USER_LEFT:
-                {
-                    console.log("User left:", message.userName);
-                    const systemMsg: SystemMessage = {
-                        type: 'system',
-                        message: `${message.userName} left the chat`,
-                        time: new Date()
-                    };
-                    setMessages((prev: any) => [...prev, systemMsg]);
-                    setUsers(message.chatUsers);
-                    break;
-                }
+                    {
+                        console.log("User left:", message.userName);
+                        const systemMsg: SystemMessage = {
+                            type: 'system',
+                            message: `${message.userName} left the chat`,
+                            time: new Date()
+                        };
+                        setMessages((prev: any) => [...prev, systemMsg]);
+                        setUsers(message.chatUsers);
+                        break;
+                    }
                 case USER_REMOVED:
-                {
-                    console.log("User removed:", message.name);
-                    const systemMsg: SystemMessage = {
-                        type: 'system',
-                        message: `${message.name} was removed from the chat`,
-                        time: new Date()
-                    };
-                    setMessages((prev: any) => [...prev, systemMsg]);
-                    setUsers(message.users);
-                    break;
-                }
+                    {
+                        console.log("User removed:", message.name);
+                        const systemMsg: SystemMessage = {
+                            type: 'system',
+                            message: `${message.name} was removed from the chat`,
+                            time: new Date()
+                        };
+                        setMessages((prev: any) => [...prev, systemMsg]);
+                        setUsers(message.users);
+                        break;
+                    }
                 default:
                     console.log("Unknown message type:", message);
             }
         }
-    },[socket, users, currentUserName, currentUserId])
+    }, [socket, users, currentUserName, currentUserId])
     return (
         <div className="flex h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 overflow-hidden">
             {/* Sidebar */}
@@ -299,7 +323,7 @@ const ChatRoom = () => {
                             </svg>
                             Members
                         </h2>
-                        <button 
+                        <button
                             onClick={() => setShowMobileMenu(false)}
                             className="md:hidden text-slate-400 hover:text-white transition-colors"
                         >
@@ -314,7 +338,7 @@ const ChatRoom = () => {
                 {/* Members List */}
                 <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                     <ul className="space-y-3">
-                        {users.map((user:any, index:number) => (
+                        {users.map((user: any, index: number) => (
                             <li key={user.id || index} className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 transition-all duration-200 border border-slate-700/50 hover:border-indigo-500/30 group">
                                 <div className="relative">
                                     {user.avatar ? (
@@ -372,7 +396,7 @@ const ChatRoom = () => {
 
             {/* Overlay for mobile */}
             {showMobileMenu && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
                     onClick={() => setShowMobileMenu(false)}
                 ></div>
@@ -384,7 +408,7 @@ const ChatRoom = () => {
                 <div className="px-4 md:px-8 py-4 md:py-6 border-b border-slate-800/50 bg-slate-900/95 backdrop-blur-xl shadow-lg">
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <button 
+                            <button
                                 onClick={() => setShowMobileMenu(true)}
                                 className="md:hidden text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-800 rounded-lg"
                             >
@@ -407,7 +431,7 @@ const ChatRoom = () => {
                             </div>
                         </div>
                         <div className="flex gap-2 flex-shrink-0">
-                            <button 
+                            <button
                                 onClick={() => setShowInviteModal(true)}
                                 className="px-3 md:px-5 py-2 md:py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-indigo-500/50 hover:scale-105 text-sm md:text-base flex items-center gap-2"
                             >
@@ -453,20 +477,22 @@ const ChatRoom = () => {
                                         </div>
                                     );
                                 }
-                                
+
                                 // Get sender name from message or fallback to finding user
                                 const senderName = msg.senderName || msg.sender || 'Unknown';
                                 const sent = msg.time ?? msg.sentTime;
                                 const timeLabel = sent ? new Date(sent).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
                                 const text = msg.text ?? msg.message ?? '';
-                                
+                                const file = msg.file ?? null;
                                 // Check if this message is from current user by comparing user IDs
                                 const isMine = msg.userId === currentUserId;
-                                console.log("Current User ID:", currentUserId, "Message User ID:", msg.userId, "Is Mine:", isMine);
-                                
+
+                                // Debug logging
+                                console.log("Message:", { text, file, hasFile: !!file, hasText: !!(text && text.trim()) });
+
                                 // Find user info for avatar
-                                const userInfo = users.find((u:User)=>u.name === senderName);
-                                
+                                const userInfo = users.find((u: User) => u.name === senderName);
+
                                 return (
                                     <div
                                         key={`${msg.id ?? msg.roomId ?? chatId ?? 'msg'}-${sent ?? idx}`}
@@ -487,7 +513,7 @@ const ChatRoom = () => {
                                                     </div>
                                                 )}
                                             </div>
-                                            
+
                                             {/* Message Content */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 mb-1">
@@ -501,15 +527,85 @@ const ChatRoom = () => {
                                                     )}
                                                 </div>
                                                 <div
-                                                    className={`px-4 py-3 rounded-2xl shadow-lg ${
-                                                        isMine
-                                                            ? 'bg-blue-600 text-white rounded-tl-md'
-                                                            : 'bg-slate-800/90 text-slate-100 rounded-tl-md border border-slate-700/50'
-                                                    }`}
+                                                    className={`px-4 py-3 rounded-2xl shadow-lg ${isMine
+                                                        ? 'bg-blue-600 text-white rounded-tl-md'
+                                                        : 'bg-slate-800/90 text-slate-100 rounded-tl-md border border-slate-700/50'
+                                                        }`}
                                                 >
-                                                    <div className="text-sm md:text-base leading-relaxed whitespace-pre-wrap break-words">
-                                                        {text}
-                                                    </div>
+                                                    {/* File attachment if present */}
+                                                    {file && (
+                                                        <div
+                                                            onClick={() => {
+                                                                // Open file in new tab
+                                                                const fileUrl = `http://localhost:8000/uploads/${file.fileName}`;
+                                                                window.open(fileUrl, '_blank');
+                                                            }}
+                                                            className={`${text && text.trim() ? 'mb-2' : ''} p-2 rounded-lg cursor-pointer transition-all ${isMine
+                                                                ? 'bg-blue-700/40 hover:bg-blue-700/60 border border-blue-400/30'
+                                                                : 'bg-slate-700/40 hover:bg-slate-700/60 border border-slate-600/50'
+                                                                }`}
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                {/* File Icon */}
+                                                                <div className={`flex-shrink-0 w-10 h-10 rounded-lg ${isMine ? 'bg-blue-500' : 'bg-indigo-600'
+                                                                    } flex items-center justify-center`}>
+                                                                    {file.mimeType?.startsWith('image/') ? (
+                                                                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                                            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+                                                                        </svg>
+                                                                    ) : file.mimeType?.startsWith('video/') ? (
+                                                                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                                            <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
+                                                                        </svg>
+                                                                    ) : file.mimeType?.includes('pdf') ? (
+                                                                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                                            <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z" />
+                                                                        </svg>
+                                                                    ) : (
+                                                                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                                            <path d="M13 9h5.5L13 3.5V9M6 2h8l6 6v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2m0 18h12v-8H6v8z" />
+                                                                        </svg>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* File Info */}
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className={`text-xs font-medium truncate ${isMine ? 'text-white' : 'text-slate-200'
+                                                                        }`} title={file.originalName || file.fileName}>
+                                                                        📎 {file.originalName || file.fileName}
+                                                                    </p>
+                                                                    {file.size && (
+                                                                        <p className={`text-xs ${isMine ? 'text-blue-200' : 'text-slate-400'
+                                                                            }`}>
+                                                                            {formatFileSize(file.size)}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* Download icon */}
+                                                                <div className="flex-shrink-0">
+                                                                    <svg className={`w-4 h-4 ${isMine ? 'text-blue-200' : 'text-slate-400'
+                                                                        }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                    </svg>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Message text - always show if it exists and has content */}
+                                                    {text && text.trim() && (
+                                                        <div className="text-sm md:text-base leading-relaxed whitespace-pre-wrap break-words">
+                                                            {text}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Only show "Empty message" if there's NO file AND NO text */}
+                                                    {!file && (!text || !text.trim()) && (
+                                                        <div className="text-sm text-slate-400 italic">
+                                                            Empty message
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -748,7 +844,7 @@ const ChatRoom = () => {
                                     <h4 className="text-sm font-semibold text-white">Room: {chatName}</h4>
                                 </div>
                                 <p className="text-xs text-slate-400 pl-8">
-                                    {users.length} {users.length === 1 ? 'member' : 'members'} • 
+                                    {users.length} {users.length === 1 ? 'member' : 'members'} •
                                     {createdAt && ` Created ${new Date(createdAt).toLocaleDateString()}`}
                                 </p>
                             </div>

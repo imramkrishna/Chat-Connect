@@ -19,7 +19,7 @@ export interface Message{
     senderName?:string
     message:string
     sentTime:Date
-    File?:FileUploadMessage
+    file?:FileUploadMessage
     roomId?:string
 }
 export interface ChatRoom{

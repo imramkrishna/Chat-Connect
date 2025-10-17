@@ -58,7 +58,7 @@ export class Chat{
                 senderName: user.name
             }
             this.messages.push(storedMessage)
-            
+            console.log("Tryiung to send message to users:", storedMessage)
             this.chatUsers.forEach(u=>{
                     u.user.send(JSON.stringify({
                         type:MESSAGE,

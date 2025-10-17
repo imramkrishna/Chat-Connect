@@ -4,6 +4,7 @@ export interface Message{
     message:string
     sentTime:Date
     roomId:string
+    file?:FileUploadMessage
     senderName?:string
 }
 export interface User{
@@ -14,4 +15,10 @@ export interface User{
     joinedTime:Date
     isAdmin:boolean
     avatar?:string
+}
+export interface FileUploadMessage{
+    fileName:string
+    originalName?:string
+    mimeType?:string
+    size?:number
 }

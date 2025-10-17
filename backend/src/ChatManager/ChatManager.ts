@@ -23,13 +23,18 @@ class ChatManager{
             if(message.type===MESSAGE){
                 const chatId=message.chatId
                 const chat=this.chats.find(c=>c.roomId==chatId)
+                if(message.file){
+                    console.log("File received:", message.file.name, "Size:", message.file.size);
+                }else{
+                    console.log("No file received with the message.");
+                }
                 if(chat){
                     const newMessage:Message={
                         user:socket,
                         message:message.message,
                         sentTime:new Date(),
-                        roomId:chatId
-
+                        roomId:chatId,
+                        file:message.file || null
                     }
                     chat.sendMessage(socket,newMessage)
                 }
