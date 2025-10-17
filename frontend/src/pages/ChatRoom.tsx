@@ -133,7 +133,6 @@ const ChatRoom = () => {
                 }
                 const data = await response.json();
                 socket?.send(JSON.stringify({
-
                     type: MESSAGE,
                     chatId: chatId,
                     message: message.trim(), // Send the message text with file
