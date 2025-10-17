@@ -253,8 +253,10 @@ const ChatRoom = () => {
                             message: message.message,
                             roomId: message.chatId,
                             sentTime: message.sentTime,
-                            senderName: message.senderName
+                            senderName: message.senderName,
+                            file: message.file // ← Add the file field!
                         }
+                        console.log("New message received with file:", message.file);
                         setMessages((prevMessages: Message[]) => [...prevMessages, newMessage])
                         break;
                     }
