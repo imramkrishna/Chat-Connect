@@ -23,6 +23,8 @@ const ChatRoom = () => {
     const [currentUserName, setCurrentUserName] = useState<string>(currentUser?.name || '');
     const [currentUserId, setCurrentUserId] = useState<number>(currentUser?.id || 0);
     const [isAdmin, setIsAdmin] = useState<boolean>(currentUser?.isAdmin || false);
+    const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+    const [filePreviewUrls, setFilePreviewUrls] = useState<{[key: string]: string}>({});
 
     // Generate initials for avatar
     const getInitials = (name: string) => {
@@ -55,51 +57,124 @@ const ChatRoom = () => {
         return colors[Math.abs(hash) % colors.length];
     };
 
-    const handleSend = () => {
-        if (!message.trim()) return;
-        socket?.send(JSON.stringify({
-            type:MESSAGE,
-            chatId:chatId,
-            message:message
-        }))
-        setMessage('');
+    // Update file handlers in AttachmentMenu callbacks
+    const handleFileSelect = (files: FileList) => {
+        const newFiles = Array.from(files);
+        setAttachedFiles(prev => [...prev, ...newFiles]);
+        console.log('Files selected:', files);
     };
-
+    const handleContactSelect = () => {
+        console.log('Contact select clicked');
+        // TODO: Implement contact selection modal
+    };
+    const handlePollCreate = () => {
+        console.log('Poll create clicked');
+        // TODO: Implement poll creation modal
+    };
+    const handleEventCreate = () => {
+        console.log('Event create clicked');
+        // TODO: Implement event creation modal
+    };
+    
     const handleCopyRoomId = () => {
         navigator.clipboard.writeText(chatId);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
-
-    // Attachment handlers
-    const handleFileSelect = (files: FileList) => {
-        console.log('Files selected:', files);
-        // TODO: Implement file upload logic
-        alert(`Selected ${files.length} file(s): ${Array.from(files).map(f => f.name).join(', ')}`);
-    };
-
+    
     const handleMediaSelect = (files: FileList) => {
+        const newFiles = Array.from(files);
+        setAttachedFiles(prev => [...prev, ...newFiles]);
+        
+        // Generate preview URLs for images/videos
+        newFiles.forEach(file => {
+            if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+                const url = URL.createObjectURL(file);
+                setFilePreviewUrls(prev => ({...prev, [file.name]: url}));
+            }
+        });
         console.log('Media selected:', files);
-        // TODO: Implement media upload logic
-        alert(`Selected ${files.length} media file(s): ${Array.from(files).map(f => f.name).join(', ')}`);
     };
 
-    const handleContactSelect = () => {
-        console.log('Contact selected');
-        // TODO: Implement contact sharing logic
-        alert('Contact sharing feature coming soon!');
+    const removeAttachedFile = (index: number) => {
+        const file = attachedFiles[index];
+        
+        // Revoke object URL to prevent memory leaks
+        if (filePreviewUrls[file.name]) {
+            URL.revokeObjectURL(filePreviewUrls[file.name]);
+            setFilePreviewUrls(prev => {
+                const newUrls = {...prev};
+                delete newUrls[file.name];
+                return newUrls;
+            });
+        }
+        
+        setAttachedFiles(prev => prev.filter((_, i) => i !== index));
     };
 
-    const handlePollCreate = () => {
-        console.log('Poll creation requested');
-        // TODO: Implement poll creation logic
-        alert('Poll creation feature coming soon!');
+    const handleSend = async () => {
+        if (!message.trim() && attachedFiles.length === 0) return;
+        
+        // If there are attached files, upload them first
+        if (attachedFiles.length > 0) {
+            // TODO: Upload files and get URLs
+            for (const file of attachedFiles) {
+                // Upload logic here
+                console.log('Uploading:', file);
+            }
+        }
+        
+        // Send message
+        socket?.send(JSON.stringify({
+            type: MESSAGE,
+            chatId: chatId,
+            message: message,
+            // attachments: uploadedFileUrls // Add this after implementing upload
+        }));
+        
+        setMessage('');
+        setAttachedFiles([]);
+        
+        // Clean up preview URLs
+        Object.values(filePreviewUrls).forEach(url => URL.revokeObjectURL(url));
+        setFilePreviewUrls({});
     };
 
-    const handleEventCreate = () => {
-        console.log('Event creation requested');
-        // TODO: Implement event creation logic
-        alert('Event creation feature coming soon!');
+    // Cleanup preview URLs on unmount
+    useEffect(() => {
+        return () => {
+            Object.values(filePreviewUrls).forEach(url => URL.revokeObjectURL(url));
+        };
+    }, []);
+
+    const getFileIcon = (fileType: string) => {
+        if (fileType.startsWith('image/')) {
+            return (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+                </svg>
+            );
+        }
+        if (fileType.startsWith('video/')) {
+            return (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
+                </svg>
+            );
+        }
+        return (
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M13 9h5.5L13 3.5V9M6 2h8l6 6v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2m0 18h12v-8H6v8z" />
+            </svg>
+        );
+    };
+
+    const formatFileSize = (bytes: number) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
     };
 
     useEffect(() => {
@@ -448,8 +523,89 @@ const ChatRoom = () => {
                 {/* Message Input */}
                 <div className="px-4 md:px-8 py-4 md:py-6 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800/50 shadow-2xl">
                     <div className="max-w-4xl mx-auto">
+                        {/* File Preview Section */}
+                        {attachedFiles.length > 0 && (
+                            <div className="mb-4 p-3 bg-slate-800/50 rounded-xl border border-slate-700/50">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm font-semibold text-slate-300">
+                                        {attachedFiles.length} {attachedFiles.length === 1 ? 'file' : 'files'} attached
+                                    </span>
+                                    <button
+                                        onClick={() => {
+                                            setAttachedFiles([]);
+                                            Object.values(filePreviewUrls).forEach(url => URL.revokeObjectURL(url));
+                                            setFilePreviewUrls({});
+                                        }}
+                                        className="text-xs text-red-400 hover:text-red-300 font-medium"
+                                    >
+                                        Clear all
+                                    </button>
+                                </div>
+                                <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2">
+                                    {attachedFiles.map((file, index) => (
+                                        <div
+                                            key={`${file.name}-${index}`}
+                                            className="relative flex-shrink-0 group"
+                                        >
+                                            {/* Image/Video Preview */}
+                                            {(file.type.startsWith('image/') || file.type.startsWith('video/')) && filePreviewUrls[file.name] ? (
+                                                <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-slate-700 hover:border-indigo-500 transition-colors">
+                                                    {file.type.startsWith('image/') ? (
+                                                        <img
+                                                            src={filePreviewUrls[file.name]}
+                                                            alt={file.name}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <video
+                                                            src={filePreviewUrls[file.name]}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    )}
+                                                    {/* Remove Button */}
+                                                    <button
+                                                        onClick={() => removeAttachedFile(index)}
+                                                        className="absolute top-1 right-1 w-6 h-6 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                                    >
+                                                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                /* File Preview */
+                                                <div className="relative w-32 bg-slate-700/50 rounded-lg p-3 border border-slate-600 hover:border-indigo-500 transition-colors">
+                                                    <button
+                                                        onClick={() => removeAttachedFile(index)}
+                                                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-10"
+                                                    >
+                                                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                    </button>
+                                                    <div className="flex flex-col items-center gap-2">
+                                                        <div className="text-indigo-400">
+                                                            {getFileIcon(file.type)}
+                                                        </div>
+                                                        <div className="text-center">
+                                                            <p className="text-xs text-slate-300 font-medium truncate w-24" title={file.name}>
+                                                                {file.name}
+                                                            </p>
+                                                            <p className="text-xs text-slate-500">
+                                                                {formatFileSize(file.size)}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Input Area */}
                         <div className="flex items-end gap-3">
-                            {/* Attachment Menu */}
                             <AttachmentMenu
                                 onFileSelect={handleFileSelect}
                                 onMediaSelect={handleMediaSelect}
@@ -475,7 +631,7 @@ const ChatRoom = () => {
                             </div>
                             <button
                                 onClick={handleSend}
-                                disabled={!message.trim()}
+                                disabled={!message.trim() && attachedFiles.length === 0}
                                 className="px-5 md:px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-indigo-500/50 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 flex items-center gap-2 flex-shrink-0"
                             >
                                 <span className="hidden sm:inline">Send</span>
@@ -484,7 +640,9 @@ const ChatRoom = () => {
                                 </svg>
                             </button>
                         </div>
-                        <p className="text-xs text-slate-500 mt-2 text-center">Press Enter to send, Shift+Enter for new line</p>
+                        <p className="text-xs text-slate-500 mt-2 text-center">
+                            Press Enter to send, Shift+Enter for new line
+                        </p>
                     </div>
                 </div>
             </main>
