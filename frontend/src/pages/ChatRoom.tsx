@@ -61,18 +61,17 @@ const ChatRoom = () => {
     const handleFileSelect = (files: FileList) => {
         const newFiles = Array.from(files);
         setAttachedFiles(prev => [...prev, ...newFiles]);
-        console.log('Files selected:', files);
+
     };
     const handleContactSelect = () => {
-        console.log('Contact select clicked');
+
         // TODO: Implement contact selection modal
     };
     const handlePollCreate = () => {
-        console.log('Poll create clicked');
+
         // TODO: Implement poll creation modal
     };
     const handleEventCreate = () => {
-        console.log('Event create clicked');
         // TODO: Implement event creation modal
     };
 
@@ -93,7 +92,6 @@ const ChatRoom = () => {
                 setFilePreviewUrls(prev => ({ ...prev, [file.name]: url }));
             }
         });
-        console.log('Media selected:', files);
     };
 
     const removeAttachedFile = (index: number) => {
@@ -243,7 +241,6 @@ const ChatRoom = () => {
         if (!socket) return;
         socket.onmessage = (messageEvent: MessageEvent) => {
             const message = JSON.parse(messageEvent.data);
-            console.log("Received message:", message);
             switch (message.type) {
                 case MESSAGE:
                     {
@@ -256,13 +253,11 @@ const ChatRoom = () => {
                             senderName: message.senderName,
                             file: message.file // ← Add the file field!
                         }
-                        console.log("New message received with file:", message.file);
                         setMessages((prevMessages: Message[]) => [...prevMessages, newMessage])
                         break;
                     }
                 case NEW_USER_JOINED:
                     {
-                        console.log("New user joined:", message.chatUsers);
                         const prevCount = users.length;
                         const newCount = message.chatUsers.length;
 
@@ -284,7 +279,6 @@ const ChatRoom = () => {
                     }
                 case USER_LEFT:
                     {
-                        console.log("User left:", message.userName);
                         const systemMsg: SystemMessage = {
                             type: 'system',
                             message: `${message.userName} left the chat`,
@@ -296,7 +290,6 @@ const ChatRoom = () => {
                     }
                 case USER_REMOVED:
                     {
-                        console.log("User removed:", message.name);
                         const systemMsg: SystemMessage = {
                             type: 'system',
                             message: `${message.name} was removed from the chat`,
@@ -488,9 +481,6 @@ const ChatRoom = () => {
                                 // Check if this message is from current user by comparing user IDs
                                 const isMine = msg.userId === currentUserId;
 
-                                // Debug logging
-                                console.log("Message:", { text, file, hasFile: !!file, hasText: !!(text && text.trim()) });
-
                                 // Find user info for avatar
                                 const userInfo = users.find((u: User) => u.name === senderName);
 
@@ -536,10 +526,34 @@ const ChatRoom = () => {
                                                     {/* File attachment if present */}
                                                     {file && (
                                                         <div
-                                                            onClick={() => {
-                                                                // Open file in new tab
-                                                                const fileUrl = `http://localhost:8000/uploads/${file.fileName}`;
-                                                                window.open(fileUrl, '_blank');
+                                                            onClick={async () => {
+                                                                try {
+                                                                    const fileUrl = `http://localhost:8000/uploads/${file.fileName}`;
+                                                                    
+                                                                    // Fetch file as blob to ensure proper download
+                                                                    const response = await fetch(fileUrl);
+                                                                    if (!response.ok) {
+                                                                        throw new Error('Failed to fetch file');
+                                                                    }
+                                                                    
+                                                                    const blob = await response.blob();
+                                                                    const blobUrl = window.URL.createObjectURL(blob);
+                                                                    
+                                                                    // Create download link
+                                                                    const link = document.createElement('a');
+                                                                    link.href = blobUrl;
+                                                                    link.download = file.originalName || file.fileName;
+                                                                    document.body.appendChild(link);
+                                                                    link.click();
+                                                                    document.body.removeChild(link);
+                                                                    
+                                                                    // Cleanup
+                                                                    window.URL.revokeObjectURL(blobUrl);
+                                                                } catch (error) {
+                                                                    console.error('Download failed:', error);
+                                                                    // Fallback: open in new tab
+                                                                    window.open(`http://localhost:8000/uploads/${file.fileName}`, '_blank');
+                                                                }
                                                             }}
                                                             className={`${text && text.trim() ? 'mb-2' : ''} p-2 rounded-lg cursor-pointer transition-all ${isMine
                                                                 ? 'bg-blue-700/40 hover:bg-blue-700/60 border border-blue-400/30'
@@ -579,6 +593,11 @@ const ChatRoom = () => {
                                                                         <p className={`text-xs ${isMine ? 'text-blue-200' : 'text-slate-400'
                                                                             }`}>
                                                                             {formatFileSize(file.size)}
+                                                                            {file.mimeType && (
+                                                                                <span className="ml-1">
+                                                                                    • {file.mimeType.split('/')[1]?.toUpperCase() || 'FILE'}
+                                                                                </span>
+                                                                            )}
                                                                         </p>
                                                                     )}
                                                                 </div>
@@ -587,7 +606,7 @@ const ChatRoom = () => {
                                                                 <div className="flex-shrink-0">
                                                                     <svg className={`w-4 h-4 ${isMine ? 'text-blue-200' : 'text-slate-400'
                                                                         }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                                                     </svg>
                                                                 </div>
                                                             </div>
