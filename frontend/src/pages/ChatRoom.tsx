@@ -39,16 +39,16 @@ const ChatRoom = () => {
     // Generate random color based on name
     const getAvatarColor = (name: string) => {
         const colors = [
-            'bg-indigo-600',
-            'bg-purple-600',
-            'bg-blue-600',
-            'bg-pink-600',
-            'bg-rose-600',
-            'bg-emerald-600',
             'bg-teal-600',
+            'bg-emerald-600',
             'bg-cyan-600',
-            'bg-amber-600',
-            'bg-orange-600'
+            'bg-sky-600',
+            'bg-lime-600',
+            'bg-green-600',
+            'bg-blue-600',
+            'bg-violet-600',
+            'bg-fuchsia-600',
+            'bg-rose-600'
         ];
         let hash = 0;
         for (let i = 0; i < name.length; i++) {
@@ -305,52 +305,52 @@ const ChatRoom = () => {
         }
     }, [socket, users, currentUserName, currentUserId])
     return (
-        <div className="flex h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 overflow-hidden">
+        <div className="flex h-screen bg-gradient-to-br from-gray-950 via-blue-900 to-gray-950 overflow-hidden">
             {/* Sidebar */}
-            <aside className={`${showMobileMenu ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:relative z-50 w-80 bg-slate-900/95 backdrop-blur-xl border-r border-slate-800/50 flex-shrink-0 flex-col h-full transition-transform duration-300 ease-in-out shadow-2xl`}>
+            <aside className={`${showMobileMenu ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:relative z-50 w-80 bg-blue-900/95 backdrop-blur-xl border-r border-blue-800/50 flex-shrink-0 flex-col h-full transition-transform duration-300 ease-in-out shadow-2xl`}>
                 {/* Sidebar Header */}
-                <div className="p-6 border-b border-slate-800/50 bg-gradient-to-r from-indigo-600/10 to-purple-600/10">
+                <div className="p-6 border-b border-blue-800/50 bg-gradient-to-r from-teal-600/10 to-emerald-600/10">
                     <div className="flex items-center justify-between mb-2">
                         <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <svg className="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-6 h-6 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                             Members
                         </h2>
                         <button
                             onClick={() => setShowMobileMenu(false)}
-                            className="md:hidden text-slate-400 hover:text-white transition-colors"
+                            className="md:hidden text-gray-400 hover:text-white transition-colors"
                         >
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
-                    <p className="text-slate-400 text-sm">{users.length} {users.length === 1 ? 'member' : 'members'} online</p>
+                    <p className="text-gray-400 text-sm">{users.length} {users.length === 1 ? 'member' : 'members'} online</p>
                 </div>
 
                 {/* Members List */}
                 <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                     <ul className="space-y-3">
                         {users.map((user: any, index: number) => (
-                            <li key={user.id || index} className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 transition-all duration-200 border border-slate-700/50 hover:border-indigo-500/30 group">
+                            <li key={user.id || index} className="flex items-center gap-3 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-all duration-200 border border-gray-700/50 hover:border-teal-500/30 group">
                                 <div className="relative">
                                     {user.avatar ? (
                                         <img
                                             src={user.avatar}
                                             alt={user.name}
-                                            className="w-12 h-12 rounded-full border-2 border-indigo-500 shadow-lg group-hover:scale-105 transition-transform"
+                                            className="w-12 h-12 rounded-full border-2 border-teal-500 shadow-lg group-hover:scale-105 transition-transform"
                                         />
                                     ) : (
-                                        <div className={`w-12 h-12 rounded-full ${getAvatarColor(user.name)} border-2 border-indigo-500 shadow-lg group-hover:scale-105 transition-transform flex items-center justify-center text-white font-bold text-base`}>
+                                        <div className={`w-12 h-12 rounded-full ${getAvatarColor(user.name)} border-2 border-teal-500 shadow-lg group-hover:scale-105 transition-transform flex items-center justify-center text-white font-bold text-base`}>
                                             {getInitials(user.name)}
                                         </div>
                                     )}
-                                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-slate-900"></div>
+                                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-blue-900"></div>
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-slate-200 font-semibold truncate">{user.name}</span>
+                                        <span className="text-gray-200 font-semibold truncate">{user.name}</span>
                                         {user.isAdmin && (
                                             <span className="text-xs text-emerald-900 bg-emerald-400 px-2 py-0.5 rounded-full font-bold shadow-sm">
                                                 ADMIN
@@ -360,7 +360,7 @@ const ChatRoom = () => {
                                             <span className="text-xs text-blue-400 font-medium">(You)</span>
                                         )}
                                     </div>
-                                    <span className="text-xs text-slate-500">Active now</span>
+                                    <span className="text-xs text-gray-500">Active now</span>
                                 </div>
                                 {/* Kick button - only show for admin and not for themselves */}
                                 {isAdmin && user.id !== currentUserId && (
@@ -397,9 +397,18 @@ const ChatRoom = () => {
             )}
 
             {/* Main Chat Area */}
+            {/* Overlay for mobile */}
+            {showMobileMenu && (
+                <div
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
+                    onClick={() => setShowMobileMenu(false)}
+                ></div>
+            )}
+
+            {/* Main Chat Area */}
             <main className="flex-1 flex flex-col min-w-0">
                 {/* Room Info Header */}
-                <div className="px-4 md:px-8 py-4 md:py-6 border-b border-slate-800/50 bg-slate-900/95 backdrop-blur-xl shadow-lg">
+                <div className="px-4 md:px-8 py-4 md:py-6 border-b border-blue-800/50 bg-blue-900/95 backdrop-blur-xl shadow-lg">
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                             <button

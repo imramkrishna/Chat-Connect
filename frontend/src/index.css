@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+/* Custom Color Theme Override */
+:root {
+  /* Replace Indigo/Purple with Teal/Emerald */
+  --color-primary-400: #2dd4bf; /* teal-400 */
+  --color-primary-500: #14b8a6; /* teal-500 */
+  --color-primary-600: #0d9488; /* teal-600 */
+  --color-primary-700: #0f766e; /* teal-700 */
+  
+  --color-secondary-500: #10b981; /* emerald-500 */
+  --color-secondary-600: #059669; /* emerald-600 */
+  --color-secondary-700: #047857; /* emerald-700 */
+  
+  /* Replace Slate with Blue/Gray */
+  --color-bg-primary: #020617; /* gray-950 */
+  --color-bg-secondary: #1e3a8a; /* blue-900 */
+  --color-bg-tertiary: #1e40af; /* blue-800 */
+  --color-bg-card: #374151; /* gray-800 */
+  --color-bg-hover: #4b5563; /* gray-700 */
+  
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #d1d5db; /* gray-300 */
+  --color-text-tertiary: #9ca3af; /* gray-400 */
+  --color-text-muted: #6b7280; /* gray-500 */
+  
+  --color-border-default: #374151; /* gray-700 */
+  --color-border-light: #4b5563; /* gray-600 */
+}
+
+/* Global color overrides for existing Tailwind classes */
+.bg-slate-950 {
+  background-color: #020617 !important; /* gray-950 */
+}
+
+.bg-slate-900 {
+  background-color: #1e3a8a !important; /* blue-900 */
+}
+
+.bg-slate-800 {
+  background-color: #1e40af !important; /* blue-800 */
+}
+
+.bg-slate-700 {
+  background-color: #374151 !important; /* gray-700 */
+}
+
+.border-slate-800 {
+  border-color: #1e40af !important; /* blue-800 */
+}
+
+.border-slate-700 {
+  border-color: #374151 !important; /* gray-700 */
+}
+
+.text-slate-400 {
+  color: #9ca3af !important; /* gray-400 */
+}
+
+.text-slate-300 {
+  color: #d1d5db !important; /* gray-300 */
+}
+
+.text-slate-500 {
+  color: #6b7280 !important; /* gray-500 */
+}
+
+/* Convert indigo colors to teal */
+.text-indigo-400,
+.hover\:text-indigo-400:hover {
+  color: #2dd4bf !important; /* teal-400 */
+}
+
+.bg-indigo-500 {
+  background-color: #14b8a6 !important; /* teal-500 */
+}
+
+.bg-indigo-600 {
+  background-color: #0d9488 !important; /* teal-600 */
+}
+
+.bg-indigo-700 {
+  background-color: #0f766e !important; /* teal-700 */
+}
+
+.from-indigo-500 {
+  --tw-gradient-from: #14b8a6 !important; /* teal-500 */
+}
+
+.from-indigo-600 {
+  --tw-gradient-from: #0d9488 !important; /* teal-600 */
+}
+
+.from-indigo-700 {
+  --tw-gradient-from: #0f766e !important; /* teal-700 */
+}
+
+.border-indigo-500 {
+  border-color: #14b8a6 !important; /* teal-500 */
+}
+
+/* Convert purple colors to emerald */
+.bg-purple-500 {
+  background-color: #10b981 !important; /* emerald-500 */
+}
+
+.bg-purple-600 {
+  background-color: #059669 !important; /* emerald-600 */
+}
+
+.bg-purple-700 {
+  background-color: #047857 !important; /* emerald-700 */
+}
+
+.to-purple-600 {
+  --tw-gradient-to: #059669 !important; /* emerald-600 */
+}
+
+.to-purple-700 {
+  --tw-gradient-to: #047857 !important; /* emerald-700 */
+}
+
+.hover\:from-indigo-700:hover {
+  --tw-gradient-from: #0f766e !important; /* teal-700 */
+}
+
+.hover\:to-purple-700:hover {
+  --tw-gradient-to: #047857 !important; /* emerald-700 */
+}
+
+.hover\:border-indigo-500\/30:hover {
+  border-color: rgba(20, 184, 166, 0.3) !important; /* teal-500 with 30% opacity */
+}
+
+.hover\:shadow-indigo-500\/50:hover {
+  --tw-shadow-color: rgba(20, 184, 166, 0.5) !important; /* teal-500 with 50% opacity */
+}
+
+/* Pink to Cyan for blob animations */
+.bg-pink-500 {
+  background-color: #06b6d4 !important; /* cyan-500 */
+}
