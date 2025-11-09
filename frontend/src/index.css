@@ -1,142 +1,193 @@
 @import "tailwindcss";
 
-/* Custom Color Theme Override */
+/* Discord-Inspired Color Theme */
 :root {
-  /* Replace Indigo/Purple with Teal/Emerald */
-  --color-primary-400: #2dd4bf; /* teal-400 */
-  --color-primary-500: #14b8a6; /* teal-500 */
-  --color-primary-600: #0d9488; /* teal-600 */
-  --color-primary-700: #0f766e; /* teal-700 */
+  /* Primary Colors - Blurple for primary actions */
+  --color-primary-400: #7289da; /* lighter blurple */
+  --color-primary-500: #5865f2; /* blurple */
+  --color-primary-600: #4752c4; /* darker blurple */
+  --color-primary-700: #3c45a5; /* darkest blurple */
   
-  --color-secondary-500: #10b981; /* emerald-500 */
-  --color-secondary-600: #059669; /* emerald-600 */
-  --color-secondary-700: #047857; /* emerald-700 */
+  /* Accent - Bright Green */
+  --color-accent-400: #4ec76d; /* lighter green */
+  --color-accent-500: #3ba55d; /* bright green */
+  --color-accent-600: #2d8049; /* darker green */
+  --color-accent-700: #1f5a33; /* darkest green */
   
-  /* Replace Slate with Blue/Gray */
-  --color-bg-primary: #020617; /* gray-950 */
-  --color-bg-secondary: #1e3a8a; /* blue-900 */
-  --color-bg-tertiary: #1e40af; /* blue-800 */
-  --color-bg-card: #374151; /* gray-800 */
-  --color-bg-hover: #4b5563; /* gray-700 */
+  /* Backgrounds - Dark Slate */
+  --color-bg-primary: #2f3136; /* darkest slate */
+  --color-bg-secondary: #36393f; /* dark slate */
+  --color-bg-tertiary: #40444b; /* lighter slate */
+  --color-bg-card: #40444b; /* lighter slate for cards */
+  --color-bg-hover: #4a4e56; /* hover state */
   
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #d1d5db; /* gray-300 */
-  --color-text-tertiary: #9ca3af; /* gray-400 */
-  --color-text-muted: #6b7280; /* gray-500 */
+  /* Text Colors */
+  --color-text-primary: #dcddde; /* white */
+  --color-text-secondary: #b9bbbe; /* muted white */
+  --color-text-tertiary: #8e9297; /* gray text */
+  --color-text-muted: #72767d; /* muted gray */
   
-  --color-border-default: #374151; /* gray-700 */
-  --color-border-light: #4b5563; /* gray-600 */
+  /* Borders */
+  --color-border-default: #202225; /* dark border */
+  --color-border-light: #40444b; /* lighter border */
 }
 
 /* Global color overrides for existing Tailwind classes */
-.bg-slate-950 {
-  background-color: #020617 !important; /* gray-950 */
+.bg-slate-950,
+.bg-gray-950 {
+  background-color: #2f3136 !important; /* darkest slate */
 }
 
-.bg-slate-900 {
-  background-color: #1e3a8a !important; /* blue-900 */
+.bg-slate-900,
+.bg-blue-900 {
+  background-color: #36393f !important; /* dark slate */
 }
 
-.bg-slate-800 {
-  background-color: #1e40af !important; /* blue-800 */
+.bg-slate-800,
+.bg-blue-800,
+.bg-gray-800 {
+  background-color: #40444b !important; /* lighter slate */
 }
 
-.bg-slate-700 {
-  background-color: #374151 !important; /* gray-700 */
+.bg-slate-700,
+.bg-gray-700 {
+  background-color: #4a4e56 !important; /* hover slate */
 }
 
-.border-slate-800 {
-  border-color: #1e40af !important; /* blue-800 */
+.border-slate-800,
+.border-blue-800 {
+  border-color: #202225 !important; /* dark border */
 }
 
-.border-slate-700 {
-  border-color: #374151 !important; /* gray-700 */
+.border-slate-700,
+.border-gray-700 {
+  border-color: #40444b !important; /* lighter border */
 }
 
-.text-slate-400 {
-  color: #9ca3af !important; /* gray-400 */
+.text-slate-400,
+.text-gray-400 {
+  color: #b9bbbe !important; /* muted white */
 }
 
-.text-slate-300 {
-  color: #d1d5db !important; /* gray-300 */
+.text-slate-300,
+.text-gray-300 {
+  color: #dcddde !important; /* white text */
 }
 
-.text-slate-500 {
-  color: #6b7280 !important; /* gray-500 */
+.text-slate-500,
+.text-gray-500 {
+  color: #8e9297 !important; /* gray text */
 }
 
-/* Convert indigo colors to teal */
+.text-slate-200,
+.text-gray-200 {
+  color: #dcddde !important; /* white text */
+}
+
+/* Convert all primary colors to Blurple */
 .text-indigo-400,
-.hover\:text-indigo-400:hover {
-  color: #2dd4bf !important; /* teal-400 */
+.text-teal-400,
+.hover\:text-indigo-400:hover,
+.hover\:text-teal-400:hover {
+  color: #7289da !important; /* lighter blurple */
 }
 
-.bg-indigo-500 {
-  background-color: #14b8a6 !important; /* teal-500 */
+.bg-indigo-500,
+.bg-teal-500 {
+  background-color: #5865f2 !important; /* blurple */
 }
 
-.bg-indigo-600 {
-  background-color: #0d9488 !important; /* teal-600 */
+.bg-indigo-600,
+.bg-teal-600 {
+  background-color: #4752c4 !important; /* darker blurple */
 }
 
-.bg-indigo-700 {
-  background-color: #0f766e !important; /* teal-700 */
+.bg-indigo-700,
+.bg-teal-700 {
+  background-color: #3c45a5 !important; /* darkest blurple */
 }
 
-.from-indigo-500 {
-  --tw-gradient-from: #14b8a6 !important; /* teal-500 */
+.from-indigo-500,
+.from-indigo-600,
+.from-teal-500,
+.from-teal-600 {
+  --tw-gradient-from: #5865f2 !important; /* blurple */
 }
 
-.from-indigo-600 {
-  --tw-gradient-from: #0d9488 !important; /* teal-600 */
+.from-indigo-700,
+.from-teal-700 {
+  --tw-gradient-from: #4752c4 !important; /* darker blurple */
 }
 
-.from-indigo-700 {
-  --tw-gradient-from: #0f766e !important; /* teal-700 */
+.border-indigo-500,
+.border-teal-500 {
+  border-color: #5865f2 !important; /* blurple */
 }
 
-.border-indigo-500 {
-  border-color: #14b8a6 !important; /* teal-500 */
+/* Convert secondary colors to Green */
+.bg-purple-500,
+.bg-emerald-500 {
+  background-color: #3ba55d !important; /* bright green */
 }
 
-/* Convert purple colors to emerald */
-.bg-purple-500 {
-  background-color: #10b981 !important; /* emerald-500 */
+.bg-purple-600,
+.bg-emerald-600 {
+  background-color: #2d8049 !important; /* darker green */
 }
 
-.bg-purple-600 {
-  background-color: #059669 !important; /* emerald-600 */
+.bg-purple-700,
+.bg-emerald-700 {
+  background-color: #1f5a33 !important; /* darkest green */
 }
 
-.bg-purple-700 {
-  background-color: #047857 !important; /* emerald-700 */
+.to-purple-600,
+.to-emerald-600 {
+  --tw-gradient-to: #3ba55d !important; /* bright green */
 }
 
-.to-purple-600 {
-  --tw-gradient-to: #059669 !important; /* emerald-600 */
+.to-purple-700,
+.to-emerald-700 {
+  --tw-gradient-to: #2d8049 !important; /* darker green */
 }
 
-.to-purple-700 {
-  --tw-gradient-to: #047857 !important; /* emerald-700 */
+.hover\:from-indigo-700:hover,
+.hover\:from-teal-700:hover {
+  --tw-gradient-from: #4752c4 !important; /* darker blurple */
 }
 
-.hover\:from-indigo-700:hover {
-  --tw-gradient-from: #0f766e !important; /* teal-700 */
+.hover\:to-purple-700:hover,
+.hover\:to-emerald-700:hover {
+  --tw-gradient-to: #2d8049 !important; /* darker green */
 }
 
-.hover\:to-purple-700:hover {
-  --tw-gradient-to: #047857 !important; /* emerald-700 */
+.hover\:border-indigo-500\/30:hover,
+.hover\:border-teal-500\/30:hover {
+  border-color: rgba(88, 101, 242, 0.3) !important; /* blurple with 30% opacity */
 }
 
-.hover\:border-indigo-500\/30:hover {
-  border-color: rgba(20, 184, 166, 0.3) !important; /* teal-500 with 30% opacity */
+.hover\:shadow-indigo-500\/50:hover,
+.hover\:shadow-teal-500\/50:hover {
+  --tw-shadow-color: rgba(88, 101, 242, 0.5) !important; /* blurple with 50% opacity */
 }
 
-.hover\:shadow-indigo-500\/50:hover {
-  --tw-shadow-color: rgba(20, 184, 166, 0.5) !important; /* teal-500 with 50% opacity */
+/* Blob animations - use accent colors */
+.bg-pink-500,
+.bg-cyan-500 {
+  background-color: #3ba55d !important; /* bright green */
 }
 
-/* Pink to Cyan for blob animations */
-.bg-pink-500 {
-  background-color: #06b6d4 !important; /* cyan-500 */
+/* Green accent colors */
+.bg-green-400,
+.bg-emerald-400 {
+  background-color: #4ec76d !important; /* lighter green */
+}
+
+.text-green-400,
+.text-emerald-400 {
+  color: #4ec76d !important; /* lighter green */
+}
+
+/* Message bubble colors */
+.bg-blue-600 {
+  background-color: #5865f2 !important; /* blurple for sent messages */
 }
