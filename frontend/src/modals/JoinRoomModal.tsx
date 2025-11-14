@@ -1,8 +1,8 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSocket } from "../hooks/useSocket";
 import { CHAT_JOINED, INVALID_CREDENTIALS, JOIN_CHAT } from "../messages/message";
 import { useNavigate } from "react-router-dom";
-import type {Message} from "../types.tsx";
+import type { Message } from "../types.tsx";
 
 interface JoinRoomModalProps {
     onOpen?: () => void;
@@ -14,46 +14,50 @@ const JoinRoomModal: React.FC<JoinRoomModalProps> = ({
     onCreate,
     onClose
 }) => {
-    const navigate=useNavigate();
-    const socket=useSocket();
+    const navigate = useNavigate();
+    const socket = useSocket();
     const [roomCode, setRoomCode] = useState("");
     const [userName, setUserName] = useState("");
-    const [showError,setShowError]=useState<boolean>(false)
+    const [showError, setShowError] = useState<boolean>(false)
     const handleJoinRoom = () => {
         socket?.send(JSON.stringify({
-            type:JOIN_CHAT,
-            name:userName.toUpperCase(),
-            chatId:roomCode
-        }))  
+            type: JOIN_CHAT,
+            name: userName.toUpperCase(),
+            chatId: roomCode
+        }))
     };
-    useEffect(()=>{
-        if(!socket) return;
-        socket.onmessage=(messageData)=>{
-            const message=JSON.parse(messageData.data)
-            switch (message.type){
+    useEffect(() => {
+        if (!socket) return;
+        socket.onmessage = (messageData) => {
+            const message = JSON.parse(messageData.data)
+            switch (message.type) {
                 case CHAT_JOINED:
-                    navigate("/chat",{
-                        state:{
-                            chatId:message.chatId,
-                            chatUsers:message.chatUsers,
-                            chatMessages:message.messages as Message[],
-                            chatName:message.name,
-                            createdAt:message.createdAt,
-                            currentUser:message.currentUser
-                        }})
+                    navigate("/chat", {
+                        state: {
+                            chatId: message.chatId,
+                            chatUsers: message.chatUsers,
+                            chatMessages: message.messages as Message[],
+                            chatName: message.name,
+                            createdAt: message.createdAt,
+                            currentUser: message.currentUser
+                        }
+                    })
                     break;
                 case INVALID_CREDENTIALS:
                     setShowError(true)
                     break;
                 default:
-                    console.log("Invalid message data")        
+                    console.log("Invalid message data")
             }
         }
-    },[socket,navigate])
+        return () => {
+            socket.onmessage = null; // Cleanup
+        };
+    }, [socket, navigate])
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop with blur */}
-            <div 
+            <div
                 className="absolute inset-0 bg-black/60 backdrop-blur-md"
                 onClick={onClose}
             ></div>
@@ -130,7 +134,7 @@ const JoinRoomModal: React.FC<JoinRoomModalProps> = ({
                                 <p className="font-medium text-white mb-1">Need a room code?</p>
                                 <p className="text-gray-400">
                                     Get the code from the person who created the room, or{" "}
-                                    <button 
+                                    <button
                                         onClick={onCreate}
                                         className="text-teal-400 hover:text-teal-300 font-medium underline"
                                     >
