@@ -20,11 +20,21 @@ const JoinRoomModal: React.FC<JoinRoomModalProps> = ({
     const [userName, setUserName] = useState("");
     const [showError, setShowError] = useState<boolean>(false)
     const handleJoinRoom = () => {
-        socket?.send(JSON.stringify({
-            type: JOIN_CHAT,
-            name: userName.toUpperCase(),
-            chatId: roomCode
-        }))
+        if (!socket) return;
+
+        const sendJoinRequest = () => {
+            socket.send(JSON.stringify({
+                type: JOIN_CHAT,
+                name: userName.toUpperCase(),
+                chatId: roomCode
+            }));
+        };
+
+        if (socket.readyState === WebSocket.OPEN) {
+            sendJoinRequest();
+        } else {
+            socket.addEventListener('open', sendJoinRequest, { once: true });
+        }
     };
     useEffect(() => {
         if (!socket) return;
