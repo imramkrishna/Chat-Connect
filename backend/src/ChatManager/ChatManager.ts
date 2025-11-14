@@ -62,7 +62,7 @@ class ChatManager{
                 if(chat){
                     const newUser = chat.addNewChatUser(socket,message.name)
                     chat.chatUsers.forEach(user=>{
-                        if(user.user===socket){
+                        if(user.id===newUser.id){
                             socket.send(JSON.stringify({
                                 type:CHAT_JOINED,
                                 chatId,
