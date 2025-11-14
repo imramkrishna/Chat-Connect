@@ -1,1 +1,0 @@
-{"root":["./src/index.ts","./src/chatmanager/chat.ts","./src/chatmanager/chatmanager.ts","./src/storage/filefilter.ts","./src/storage/storage.ts","./src/storage/upload.ts","./src/utils/generateroomid.ts","./src/utils/message.ts","./src/utils/types.ts"],"version":"5.7.3"}

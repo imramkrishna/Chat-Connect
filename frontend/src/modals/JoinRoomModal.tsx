@@ -49,7 +49,7 @@ const JoinRoomModal: React.FC<JoinRoomModalProps> = ({
                     console.log("Invalid message data")        
             }
         }
-    })
+    },[socket,navigate])
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop with blur */}
