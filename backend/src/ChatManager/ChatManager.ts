@@ -23,6 +23,7 @@ class ChatManager{
             if(message.type===MESSAGE){
                 const chatId=message.chatId
                 const chat=this.chats.find(c=>c.roomId==chatId)
+                const user=chat?.chatUsers.find(c=>c.user==socket)
                 if(message.file){
                     console.log("File received:", message.file.name, "Size:", message.file.size);
                 }else{
